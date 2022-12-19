@@ -3,46 +3,6 @@
 #include <stdio.h>
 #include <GL/glew.h>
 
-void H_Shader_Destroy(H_Shader shader)
-{
-    glDeleteProgram(shader.id);
-}
-
-void H_Shader_Use(H_Shader shader)
-{
-    glUseProgram(shader.id);
-}
-
-void H_Shader_SetInt(H_Shader shader, const char* name, int value)
-{
-    glUniform1i(glGetUniformLocation(shader.id, name), value);
-}
-
-void H_Shader_SetFloat(H_Shader shader, const char* name, float value)
-{
-    glUniform1f(glGetUniformLocation(shader.id, name), value);
-}
-
-void H_Shader_SetVec2(H_Shader shader, const char* name, H_Vec2 value)
-{
-    glUniform2f(glGetUniformLocation(shader.id, name), value.x, value.y);
-}
-
-void H_Shader_SetVec3(H_Shader shader, const char* name, H_Vec3 value)
-{
-    glUniform3f(glGetUniformLocation(shader.id, name), value.x, value.y, value.z);
-}
-
-void H_Shader_SetVec4(H_Shader shader, const char* name, H_Vec4 value)
-{
-    glUniform4f(glGetUniformLocation(shader.id, name), value.x, value.y, value.z, value.w);
-}
-
-void H_Shader_SetMat4(H_Shader shader, const char* name, H_Mat4 value)
-{
-    glUniformMatrix4fv(glGetUniformLocation(shader.id, name), 1, GL_FALSE, (float*)&value);
-}
-
 H_Shader H_Shader_Create(const char* vertexSource, const char* fragmentSource)
 {
     H_Shader shader;
@@ -87,4 +47,44 @@ H_Shader H_Shader_Create(const char* vertexSource, const char* fragmentSource)
     glDeleteShader(fragmentShader);
 
     return shader;
+}
+
+void H_Shader_Destroy(H_Shader shader)
+{
+    glDeleteProgram(shader.id);
+}
+
+void H_Shader_Use(H_Shader shader)
+{
+    glUseProgram(shader.id);
+}
+
+void H_Shader_SetInt(H_Shader shader, const char* name, int value)
+{
+    glUniform1i(glGetUniformLocation(shader.id, name), value);
+}
+
+void H_Shader_SetFloat(H_Shader shader, const char* name, float value)
+{
+    glUniform1f(glGetUniformLocation(shader.id, name), value);
+}
+
+void H_Shader_SetVec2(H_Shader shader, const char* name, H_Vec2 value)
+{
+    glUniform2f(glGetUniformLocation(shader.id, name), value.x, value.y);
+}
+
+void H_Shader_SetVec3(H_Shader shader, const char* name, H_Vec3 value)
+{
+    glUniform3f(glGetUniformLocation(shader.id, name), value.x, value.y, value.z);
+}
+
+void H_Shader_SetVec4(H_Shader shader, const char* name, H_Vec4 value)
+{
+    glUniform4f(glGetUniformLocation(shader.id, name), value.x, value.y, value.z, value.w);
+}
+
+void H_Shader_SetMat4(H_Shader shader, const char* name, H_Mat4 value)
+{
+    glUniformMatrix4fv(glGetUniformLocation(shader.id, name), 1, GL_FALSE, (float*)&value);
 }
