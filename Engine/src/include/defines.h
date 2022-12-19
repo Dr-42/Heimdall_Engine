@@ -42,7 +42,7 @@ STATIC_ASSERT(sizeof(f32) == 4, "Expected f32 to be 4 bytes.");
 STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 
 #ifdef _MSC_VER
-#define M_API __declspec(dllexport)
+#define H_API __declspec(dllexport)
 #else
-#define M_API __attribute__((visibility("default")))
+#define H_API __attribute__((visibility("default")))
 #endif
