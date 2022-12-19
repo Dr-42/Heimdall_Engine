@@ -1,64 +1,83 @@
 #include "core/h_memory.h"
+#include "defines.h"
 
-H_Mem_Chunk H_Mem_Chunks[H_MEM_CHUNKS_MAX] = {0};
-static H_Mem_ID chunk_count = 0;
+#include <stdint.h>
+#include <stddef.h>
+#include <string.h>
 
-H_Mem_ID H_Mem_Malloc(size_t size, H_Mem_Type type)
+#define H_MEM_ALIGNMENT 16
+#define H_MEM_ALIGN_MASK (H_MEM_ALIGNMENT - 1)
+
+typedef struct H_MemBlock_s
 {
-    H_Mem_Chunk chunk = {0};
-    chunk.ID = chunk_count++; 
-    chunk.ptr = malloc(size);
-    chunk.size = size;
-    chunk.type = type;
-    H_Mem_Chunks[chunk.ID] = chunk;
-    return chunk.ID;
+    size_t size;
+    uint8_t data[];
+} H_MemBlock;
+
+static size_t H_Mem_AlignUp(size_t size)
+{
+    return (size + H_MEM_ALIGN_MASK) & ~H_MEM_ALIGN_MASK;
 }
 
-H_Mem_ID H_Mem_Calloc(size_t num, size_t size, H_Mem_Type type)
+static H_MemBlock* H_Mem_GetBlockFromPointer(void* ptr)
 {
-    H_Mem_Chunk chunk = {0};
-    chunk.ID = chunk_count++; 
-    chunk.ptr = calloc(num, size);
-    chunk.size = size;
-    chunk.type = type;
-    H_Mem_Chunks[chunk.ID] = chunk;
-    return chunk.ID;
+    return (H_MemBlock*)((uint8_t*)ptr - offsetof(H_MemBlock, data));
 }
 
-H_Mem_ID H_Mem_Realloc(H_Mem_ID id, size_t size, H_Mem_Type type)
+static void* H_Mem_GetPointerFromBlock(H_MemBlock* block)
 {
-    H_Mem_Chunk chunk = H_Mem_Chunks[id];
-    chunk.ptr = realloc(chunk.ptr, size);
-    chunk.size = size;
-    chunk.type = type;
-    return chunk.ID;
+    return (void*)block->data;
 }
 
-void H_Mem_Free(H_Mem_ID id)
+void* H_Mem_Malloc(size_t size)
 {
-    H_Mem_Chunk chunk = H_Mem_Chunks[id];
-    free(chunk.ptr);
-    H_Mem_Chunks[id] = (H_Mem_Chunk){0};
-}
-
-void H_Mem_Init()
-{
-    chunk_count = 0;
-}
-
-void H_Mem_Free_All()
-{
-    for (H_Mem_ID i = 0; i < chunk_count; i++)
+    size_t totalSize = H_Mem_AlignUp(sizeof(H_MemBlock)) + H_Mem_AlignUp(size);
+    H_MemBlock* block = (H_MemBlock*)malloc(totalSize);
+    if (block == NULL)
     {
-        H_Mem_Chunk chunk = H_Mem_Chunks[i];
-        if (chunk.ptr)
-        {
-            free(chunk.ptr);
-        }
+        return NULL;
     }
+
+    block->size = size;
+    return H_Mem_GetPointerFromBlock(block);
 }
 
-void* H_Mem_GetPtr(H_Mem_ID id)
+void* H_Mem_Realloc(void* ptr, size_t size)
 {
-    return H_Mem_Chunks[id].ptr;
+    if (ptr == NULL)
+    {
+        return H_Mem_Malloc(size);
+    }
+
+    H_MemBlock* block = H_Mem_GetBlockFromPointer(ptr);
+    size_t totalSize = H_Mem_AlignUp(sizeof(H_MemBlock)) + H_Mem_AlignUp(size);
+    block = (H_MemBlock*)realloc(block, totalSize);
+    if (block == NULL)
+    {
+        return NULL;
+    }
+
+    block->size = size;
+    return H_Mem_GetPointerFromBlock(block);
+}
+
+void* H_Mem_Calloc(size_t count, size_t size)
+{
+    void* ptr = H_Mem_Malloc(count * size);
+    if (ptr != NULL)
+    {
+        memset(ptr, 0, count * size);
+    }
+    return ptr;
+}
+
+void H_Mem_Free(void* ptr)
+{
+    if (ptr == NULL)
+    {
+        return;
+    }
+
+    H_MemBlock* block = H_Mem_GetBlockFromPointer(ptr);
+    free(block);
 }
